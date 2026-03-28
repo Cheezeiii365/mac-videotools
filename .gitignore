@@ -4,3 +4,24 @@ dist/
 *.log
 .DS_Store
 thumbs.db
+
+# Security patterns added by aIDE
+.env.*
+.env.local
+.env.*.local
+*.pem
+*.key
+*.p12
+*.keystore
+*.pfx
+credentials.json
+secrets.json
+serviceAccountKey.json
+**/service-account*.json
+.aws/
+.gcp/
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+.aide/local/
+Thumbs.db
