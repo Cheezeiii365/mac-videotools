@@ -28,9 +28,12 @@ export default function PresetsPage({ store }: Props) {
   };
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-6">
+    <div className="px-8 pb-8 -mt-2 max-w-4xl mx-auto space-y-6">
       <div className="flex items-center justify-between">
-        <h2 className="text-xl font-semibold">Presets</h2>
+        <div>
+          <h2 className="page-title">Presets</h2>
+          <p className="page-subtitle">Manage transcoding presets for quick conversion</p>
+        </div>
         <button
           onClick={() => {
             setShowNewForm(true);
@@ -50,9 +53,14 @@ export default function PresetsPage({ store }: Props) {
               isBuiltIn: false,
             });
           }}
-          className="btn-primary text-sm"
+          className="btn-primary"
         >
-          + New Preset
+          <span className="flex items-center gap-1.5">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <path d="M10 4v12M4 10h12" />
+            </svg>
+            New Preset
+          </span>
         </button>
       </div>
 
@@ -70,8 +78,8 @@ export default function PresetsPage({ store }: Props) {
 
       {/* Built-in presets */}
       <div>
-        <h3 className="text-sm font-medium text-gray-400 mb-3">Built-in Presets</h3>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+        <h3 className="section-label mb-3">Built-in Presets</h3>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
           {builtIn.map((preset) => (
             <PresetCard key={preset.id} preset={preset} />
           ))}
@@ -81,8 +89,8 @@ export default function PresetsPage({ store }: Props) {
       {/* Custom presets */}
       {custom.length > 0 && (
         <div>
-          <h3 className="text-sm font-medium text-gray-400 mb-3">Custom Presets</h3>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <h3 className="section-label mb-3">Custom Presets</h3>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             {custom.map((preset) => (
               <PresetCard
                 key={preset.id}
@@ -108,35 +116,41 @@ function PresetCard({
   onDelete?: () => void;
 }) {
   return (
-    <div className="card flex flex-col gap-1.5">
+    <div className="card group hover:shadow-card-hover">
       <div className="flex items-start justify-between">
-        <div>
-          <h4 className="text-sm font-medium">{preset.name}</h4>
-          <p className="text-xs text-gray-500 mt-0.5">{preset.description}</p>
+        <div className="flex-1 min-w-0">
+          <h4 className="text-[13px] font-semibold text-gray-200">{preset.name}</h4>
+          <p className="text-[12px] text-gray-600 mt-0.5 truncate">{preset.description}</p>
         </div>
         {!preset.isBuiltIn && (
-          <div className="flex gap-1.5 ml-2">
+          <div className="flex gap-2 ml-3 opacity-0 group-hover:opacity-100 transition-opacity">
             {onEdit && (
-              <button onClick={onEdit} className="text-xs text-gray-500 hover:text-gray-300">
+              <button onClick={onEdit} className="text-[11px] font-medium text-gray-600 hover:text-gray-300 transition-colors px-1.5 py-0.5 rounded hover:bg-surface-3">
                 Edit
               </button>
             )}
             {onDelete && (
-              <button onClick={onDelete} className="text-xs text-red-500/60 hover:text-red-400">
+              <button onClick={onDelete} className="text-[11px] font-medium text-red-500/50 hover:text-red-400 transition-colors px-1.5 py-0.5 rounded hover:bg-red-500/10">
                 Delete
               </button>
             )}
           </div>
         )}
       </div>
-      <div className="flex flex-wrap gap-1.5 mt-1">
-        <span className="badge bg-surface-3 text-gray-400">
-          {preset.options.videoCodec === 'copy' ? 'No video' : preset.options.videoCodec}
+      <div className="flex flex-wrap gap-1.5 mt-3">
+        <span className="badge bg-surface-3/80 text-gray-400 border border-surface-4/50">
+          {preset.options.videoCodec === 'copy' ? 'Copy' : preset.options.videoCodec}
         </span>
-        <span className="badge bg-surface-3 text-gray-400">{preset.options.audioCodec}</span>
-        <span className="badge bg-surface-3 text-gray-400">.{preset.options.container}</span>
+        <span className="badge bg-surface-3/80 text-gray-400 border border-surface-4/50">
+          {preset.options.audioCodec}
+        </span>
+        <span className="badge bg-surface-3/80 text-gray-400 border border-surface-4/50">
+          .{preset.options.container}
+        </span>
         {preset.options.crf !== undefined && (
-          <span className="badge bg-surface-3 text-gray-400">CRF {preset.options.crf}</span>
+          <span className="badge bg-accent/10 text-accent-hover border border-accent/20">
+            CRF {preset.options.crf}
+          </span>
         )}
       </div>
     </div>
@@ -162,14 +176,14 @@ function PresetForm({
   };
 
   return (
-    <form onSubmit={handleSubmit} className="card space-y-4 border-accent/30">
-      <h3 className="text-sm font-medium text-gray-300">
+    <form onSubmit={handleSubmit} className="card border-accent/30 shadow-glow-sm animate-fade-in space-y-5">
+      <h3 className="text-[14px] font-bold text-gray-200">
         {preset.name ? 'Edit Preset' : 'New Preset'}
       </h3>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Name</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Name</label>
           <input
             className="input"
             value={name}
@@ -179,7 +193,7 @@ function PresetForm({
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Description</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Description</label>
           <input
             className="input"
             value={description}
@@ -191,7 +205,7 @@ function PresetForm({
 
       <div className="grid grid-cols-3 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Video Codec</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Video Codec</label>
           <select
             className="input"
             value={options.videoCodec}
@@ -206,7 +220,7 @@ function PresetForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Audio Codec</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Audio Codec</label>
           <select
             className="input"
             value={options.audioCodec}
@@ -221,7 +235,7 @@ function PresetForm({
           </select>
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Container</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Container</label>
           <select
             className="input"
             value={options.container}
@@ -240,7 +254,7 @@ function PresetForm({
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="block text-xs text-gray-500 mb-1">CRF</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">CRF</label>
           <input
             type="number"
             className="input"
@@ -254,7 +268,7 @@ function PresetForm({
           />
         </div>
         <div>
-          <label className="block text-xs text-gray-500 mb-1">Audio Bitrate</label>
+          <label className="block text-[12px] font-medium text-gray-400 mb-2">Audio Bitrate</label>
           <select
             className="input"
             value={options.audioBitrate ?? ''}
@@ -270,7 +284,7 @@ function PresetForm({
         </div>
       </div>
 
-      <div className="flex gap-2 justify-end">
+      <div className="flex gap-2.5 justify-end pt-1">
         <button type="button" onClick={onCancel} className="btn-secondary">
           Cancel
         </button>

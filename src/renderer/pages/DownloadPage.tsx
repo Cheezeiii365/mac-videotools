@@ -17,7 +17,7 @@ const DOWNLOAD_PRESETS: DownloadPreset[] = [
   {
     id: 'best',
     name: 'Best Quality',
-    icon: '✦',
+    icon: '\u2728',
     description: 'Best video + audio, merged',
     options: { formatId: 'bv*+ba/b', mergeOutputFormat: 'mkv', embedMetadata: true },
   },
@@ -38,21 +38,21 @@ const DOWNLOAD_PRESETS: DownloadPreset[] = [
   {
     id: 'audio-mp3',
     name: 'MP3 Audio',
-    icon: '♫',
+    icon: '\u266B',
     description: 'Extract audio as MP3 320k',
     options: { audioOnly: true, audioFormat: 'mp3', audioQuality: '0', embedThumbnail: true, embedMetadata: true },
   },
   {
     id: 'audio-flac',
     name: 'FLAC Audio',
-    icon: '♫',
+    icon: '\u266B',
     description: 'Lossless audio extraction',
     options: { audioOnly: true, audioFormat: 'flac', embedMetadata: true },
   },
   {
     id: 'smallest',
     name: 'Smallest',
-    icon: '↓',
+    icon: '\u2193',
     description: 'Lowest quality, fastest download',
     options: { formatSort: '+size,+res', mergeOutputFormat: 'mp4' },
   },
@@ -71,22 +71,22 @@ function Section({
 }) {
   const [open, setOpen] = useState(defaultOpen);
   return (
-    <div className="border-t border-surface-3/60 pt-3 mt-1">
+    <div className="border-t border-surface-3/40 pt-3.5 mt-1">
       <button
         onClick={() => setOpen(!open)}
-        className="flex items-center gap-2 w-full text-left text-xs font-semibold tracking-wide uppercase text-gray-500 hover:text-gray-300 transition-colors"
+        className="flex items-center gap-2 w-full text-left group"
       >
         <svg
-          className={`w-3 h-3 transition-transform duration-200 ${open ? 'rotate-90' : ''}`}
+          className={`w-3.5 h-3.5 text-gray-600 group-hover:text-gray-400 transition-all duration-200 ${open ? 'rotate-90' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
         >
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
-        {title}
+        <span className="section-label group-hover:text-gray-400 transition-colors">{title}</span>
       </button>
-      {open && <div className="mt-3 space-y-3">{children}</div>}
+      {open && <div className="mt-3.5 space-y-3 animate-fade-in">{children}</div>}
     </div>
   );
 }
@@ -96,9 +96,9 @@ function Section({
 function FieldRow({ label, hint, children }: { label: string; hint?: string; children: React.ReactNode }) {
   return (
     <div className="grid grid-cols-[140px_1fr] gap-3 items-start">
-      <label className="text-xs text-gray-400 pt-2 text-right select-none">
+      <label className="text-[12px] text-gray-500 pt-2 text-right select-none font-medium">
         {label}
-        {hint && <span className="block text-[10px] text-gray-600 font-normal">{hint}</span>}
+        {hint && <span className="block text-[10px] text-gray-700 font-normal mt-0.5">{hint}</span>}
       </label>
       <div>{children}</div>
     </div>
@@ -118,17 +118,17 @@ function Toggle({
     <label className="flex items-center gap-2.5 cursor-pointer group">
       <div
         onClick={() => onChange(!checked)}
-        className={`relative w-8 h-[18px] rounded-full transition-colors duration-150 ${
-          checked ? 'bg-accent' : 'bg-surface-4'
+        className={`relative w-8 h-[18px] rounded-full transition-all duration-200 ${
+          checked ? 'bg-accent shadow-glow-sm' : 'bg-surface-4'
         }`}
       >
         <div
-          className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all duration-150 shadow-sm ${
+          className={`absolute top-[2px] w-[14px] h-[14px] rounded-full bg-white transition-all duration-200 shadow-sm ${
             checked ? 'left-[15px]' : 'left-[2px]'
           }`}
         />
       </div>
-      <span className="text-xs text-gray-400 group-hover:text-gray-300 transition-colors select-none">
+      <span className="text-[12px] text-gray-500 group-hover:text-gray-300 transition-colors select-none font-medium">
         {label}
       </span>
     </label>
@@ -148,7 +148,7 @@ function SmallInput({
 }) {
   return (
     <input
-      className={`bg-surface-2 border border-surface-4 rounded-md px-2.5 py-1.5 text-xs text-gray-200 placeholder-gray-600 focus:outline-none focus:border-accent/60 transition-colors ${className}`}
+      className={`bg-surface-2 border border-surface-4 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-200 placeholder-gray-700 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all duration-200 shadow-inset-top ${className}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
@@ -169,7 +169,7 @@ function SmallSelect({
 }) {
   return (
     <select
-      className={`bg-surface-2 border border-surface-4 rounded-md px-2.5 py-1.5 text-xs text-gray-200 focus:outline-none focus:border-accent/60 transition-colors appearance-none cursor-pointer ${className}`}
+      className={`bg-surface-2 border border-surface-4 rounded-lg px-2.5 py-1.5 text-[12px] text-gray-200 focus:outline-none focus:border-accent/50 focus:ring-1 focus:ring-accent/20 transition-all duration-200 appearance-none cursor-pointer shadow-inset-top ${className}`}
       value={value}
       onChange={(e) => onChange(e.target.value)}
     >
@@ -227,7 +227,6 @@ export default function DownloadPage({ store }: Props) {
   const meta = store.downloadMetadata;
 
   const applyPreset = (preset: DownloadPreset) => {
-    // Reset all format-related state first
     setSelectedFormatId('');
     setFormatSort('');
     setMergeOutputFormat('');
@@ -328,7 +327,6 @@ export default function DownloadPage({ store }: Props) {
     store.setPage('queue');
   };
 
-  // Group formats
   const videoFormats =
     meta?.formats.filter(
       (f) => f.vcodec && f.vcodec !== 'none' && f.acodec && f.acodec !== 'none'
@@ -339,16 +337,16 @@ export default function DownloadPage({ store }: Props) {
     ) || [];
 
   return (
-    <div className="p-6 max-w-4xl mx-auto space-y-5">
+    <div className="px-8 pb-8 -mt-2 max-w-4xl mx-auto space-y-5">
       <div>
-        <h2 className="text-xl font-semibold tracking-tight">Download Media</h2>
-        <p className="text-xs text-gray-500 mt-1">
+        <h2 className="page-title">Download Media</h2>
+        <p className="page-subtitle">
           YouTube, Vimeo, Twitter/X, TikTok, and 1,000+ other sites
         </p>
       </div>
 
       {!hasDesktopApi && (
-        <div className="card border border-yellow-500/30 bg-yellow-500/10 text-yellow-200 text-sm">
+        <div className="card border-warning/20 bg-warning/5 text-yellow-200 text-[13px]">
           Native download actions are unavailable in browser-only mode. Run the app through Electron.
         </div>
       )}
@@ -358,7 +356,7 @@ export default function DownloadPage({ store }: Props) {
         <div className="flex gap-2">
           <input
             className="input"
-            placeholder="https://youtube.com/watch?v=..."
+            placeholder="Paste a URL to get started..."
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleFetchMetadata()}
@@ -366,14 +364,11 @@ export default function DownloadPage({ store }: Props) {
           <button
             onClick={handleFetchMetadata}
             disabled={!url.trim() || fetching || !hasDesktopApi}
-            className="btn-primary whitespace-nowrap disabled:opacity-40"
+            className="btn-primary whitespace-nowrap disabled:opacity-30 disabled:shadow-none min-w-[80px]"
           >
             {fetching ? (
-              <span className="flex items-center gap-1.5">
-                <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24" fill="none">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
-                </svg>
+              <span className="flex items-center gap-2">
+                <div className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Fetching
               </span>
             ) : (
@@ -381,34 +376,42 @@ export default function DownloadPage({ store }: Props) {
             )}
           </button>
         </div>
-        {error && <p className="text-xs text-red-400">{error}</p>}
+        {error && (
+          <div className="flex items-center gap-2 text-[12px] text-red-400">
+            <svg width="14" height="14" viewBox="0 0 20 20" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <circle cx="10" cy="10" r="8" />
+              <path d="M10 7v3M10 13h.01" />
+            </svg>
+            {error}
+          </div>
+        )}
 
-        {/* Quick Presets — always visible below URL bar */}
+        {/* Quick Presets */}
         <div>
-          <div className="flex items-center gap-2 mb-2">
-            <span className="text-[10px] font-semibold uppercase tracking-widest text-gray-600">Quick Presets</span>
+          <div className="flex items-center gap-2.5 mb-2.5">
+            <span className="section-label">Quick Presets</span>
             {activePreset && (
               <button
                 onClick={() => setActivePreset(null)}
-                className="text-[10px] text-gray-600 hover:text-gray-400 transition-colors"
+                className="text-[10px] font-medium text-gray-700 hover:text-gray-400 transition-colors"
               >
                 clear
               </button>
             )}
           </div>
-          <div className="flex flex-wrap gap-1.5">
+          <div className="flex flex-wrap gap-2">
             {DOWNLOAD_PRESETS.map((p) => (
               <button
                 key={p.id}
                 onClick={() => applyPreset(p)}
                 title={p.description}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 border ${
+                className={`inline-flex items-center gap-1.5 px-3.5 py-2 rounded-lg text-[12px] font-semibold transition-all duration-200 border ${
                   activePreset === p.id
-                    ? 'border-accent bg-accent/15 text-accent-hover shadow-[0_0_8px_rgba(99,102,241,0.15)]'
-                    : 'border-surface-4 bg-surface-2 text-gray-400 hover:border-gray-500 hover:text-gray-300'
+                    ? 'border-accent/50 bg-accent/10 text-accent-hover shadow-glow-sm'
+                    : 'border-surface-4/60 bg-surface-2/40 text-gray-500 hover:border-surface-5 hover:text-gray-300 hover:bg-surface-2'
                 }`}
               >
-                <span className="text-[10px] opacity-60">{p.icon}</span>
+                <span className="text-[10px] opacity-50">{p.icon}</span>
                 {p.name}
               </button>
             ))}
@@ -418,34 +421,36 @@ export default function DownloadPage({ store }: Props) {
 
       {/* Metadata preview + options */}
       {meta && (
-        <div className="card space-y-4">
+        <div className="card space-y-5 animate-fade-in">
           {/* Video info */}
           <div className="flex gap-4">
             {meta.thumbnail && (
               <img
                 src={meta.thumbnail}
                 alt=""
-                className="w-40 h-24 object-cover rounded-lg bg-surface-3 flex-shrink-0"
+                className="w-44 h-[100px] object-cover rounded-lg bg-surface-3 flex-shrink-0 border border-surface-3"
               />
             )}
             <div className="flex-1 min-w-0">
-              <h3 className="font-medium text-sm truncate">{meta.title}</h3>
+              <h3 className="font-semibold text-[14px] text-gray-200 leading-snug line-clamp-2">{meta.title}</h3>
               {meta.uploader && (
-                <p className="text-xs text-gray-500 mt-0.5">{meta.uploader}</p>
+                <p className="text-[12px] text-gray-500 mt-1 font-medium">{meta.uploader}</p>
               )}
-              {meta.duration && (
-                <p className="text-xs text-gray-500">
-                  Duration: {formatDuration(meta.duration)}
-                </p>
-              )}
-              <p className="text-[10px] text-gray-600 mt-1">
-                {meta.formats.length} formats available
-              </p>
+              <div className="flex items-center gap-3 mt-2">
+                {meta.duration && (
+                  <span className="badge bg-surface-3/80 text-gray-400 border border-surface-4/50 font-mono text-[10px]">
+                    {formatDuration(meta.duration)}
+                  </span>
+                )}
+                <span className="text-[11px] text-gray-600">
+                  {meta.formats.length} formats available
+                </span>
+              </div>
             </div>
           </div>
 
           {/* Audio only toggle */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-5">
             <Toggle
               checked={audioOnly}
               onChange={(v) => {
@@ -489,8 +494,8 @@ export default function DownloadPage({ store }: Props) {
           {/* Format selector */}
           {!audioOnly && videoFormats.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-400 mb-2">Video + Audio Formats</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+              <h4 className="section-label mb-2.5">Video + Audio Formats</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
                 {videoFormats.map((f) => (
                   <FormatOption
                     key={f.format_id}
@@ -508,8 +513,8 @@ export default function DownloadPage({ store }: Props) {
 
           {audioOnly && audioFormats.length > 0 && (
             <div>
-              <h4 className="text-xs font-medium text-gray-400 mb-2">Audio Formats</h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto">
+              <h4 className="section-label mb-2.5">Audio Formats</h4>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5 max-h-48 overflow-y-auto pr-1">
                 {audioFormats.map((f) => (
                   <FormatOption
                     key={f.format_id}
@@ -568,7 +573,7 @@ export default function DownloadPage({ store }: Props) {
                 value={filenameTemplate}
                 onChange={setFilenameTemplate}
                 placeholder="%(title)s.%(ext)s"
-                className="w-full"
+                className="w-full font-mono"
               />
             </FieldRow>
             <FieldRow label="Filenames">
@@ -584,10 +589,10 @@ export default function DownloadPage({ store }: Props) {
 
           <Section title="Subtitles">
             <FieldRow label="Subtitles">
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <Toggle checked={writeSubs} onChange={setWriteSubs} label="Write subtitles" />
                 {writeSubs && (
-                  <>
+                  <div className="animate-fade-in space-y-2.5">
                     <Toggle checked={writeAutoSubs} onChange={setWriteAutoSubs} label="Auto-generated subs" />
                     <Toggle checked={embedSubs} onChange={setEmbedSubs} label="Embed in video" />
                     <div className="flex gap-2 mt-1">
@@ -609,7 +614,7 @@ export default function DownloadPage({ store }: Props) {
                         className="w-20"
                       />
                     </div>
-                  </>
+                  </div>
                 )}
               </div>
             </FieldRow>
@@ -644,7 +649,7 @@ export default function DownloadPage({ store }: Props) {
                 value={proxy}
                 onChange={setProxy}
                 placeholder="socks5://127.0.0.1:1080"
-                className="w-full"
+                className="w-full font-mono"
               />
             </FieldRow>
             <FieldRow label="Retries" hint="--retries">
@@ -667,7 +672,7 @@ export default function DownloadPage({ store }: Props) {
 
           <Section title="Playlist">
             <FieldRow label="Playlist">
-              <div className="space-y-2">
+              <div className="space-y-2.5">
                 <Toggle
                   checked={noPlaylist}
                   onChange={setNoPlaylist}
@@ -699,7 +704,7 @@ export default function DownloadPage({ store }: Props) {
                 value={downloadSections}
                 onChange={setDownloadSections}
                 placeholder="*10:00-15:00"
-                className="w-48"
+                className="w-48 font-mono"
               />
             </FieldRow>
             <FieldRow label="Chapters">
@@ -742,17 +747,17 @@ export default function DownloadPage({ store }: Props) {
                 value={extraArgs}
                 onChange={setExtraArgs}
                 placeholder='e.g. --geo-bypass --age-limit 21'
-                className="w-full"
+                className="w-full font-mono"
               />
             </FieldRow>
           </Section>
 
           {/* Output directory */}
-          <div className="border-t border-surface-3/60 pt-4 mt-2">
-            <label className="block text-xs text-gray-500 mb-1">Output Directory</label>
+          <div className="border-t border-surface-3/40 pt-5 mt-2">
+            <label className="block text-[12px] font-medium text-gray-400 mb-2">Output Directory</label>
             <div className="flex gap-2">
               <input
-                className="input"
+                className="input font-mono text-[12px]"
                 readOnly
                 value={store.outputDir || 'Select output folder...'}
               />
@@ -769,7 +774,7 @@ export default function DownloadPage({ store }: Props) {
             </div>
           </div>
 
-          <button onClick={handleStartDownload} className="btn-primary w-full mt-2">
+          <button onClick={handleStartDownload} className="btn-primary w-full mt-3 py-2.5">
             Download
           </button>
         </div>
@@ -793,18 +798,18 @@ function FormatOption({
   return (
     <button
       onClick={onSelect}
-      className={`text-left px-3 py-2 rounded-lg border text-xs transition-colors ${
+      className={`text-left px-3.5 py-2.5 rounded-lg border text-[12px] transition-all duration-200 ${
         selected
-          ? 'border-accent bg-accent/10 text-white'
-          : 'border-surface-4 bg-surface-2 text-gray-400 hover:border-gray-500'
+          ? 'border-accent/50 bg-accent/8 text-white shadow-glow-sm'
+          : 'border-surface-4/60 bg-surface-2/40 text-gray-500 hover:border-surface-5 hover:text-gray-300'
       }`}
     >
-      <span className="font-medium">
+      <span className="font-semibold text-[12px]">
         {format.resolution || format.format_note || format.format_id}
       </span>
-      <span className="text-gray-500 ml-1.5">
+      <span className="text-gray-600 ml-2">
         {format.ext} {format.fps ? `${format.fps}fps` : ''}
-        {size ? ` · ${(size / 1024 / 1024).toFixed(1)}MB` : ''}
+        {size ? ` \u2022 ${(size / 1024 / 1024).toFixed(1)}MB` : ''}
       </span>
     </button>
   );
