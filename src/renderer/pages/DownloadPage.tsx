@@ -12,11 +12,16 @@ export default function DownloadPage({ store }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [selectedFormatId, setSelectedFormatId] = useState<string>('');
   const [audioOnly, setAudioOnly] = useState(false);
+  const hasDesktopApi = typeof window !== 'undefined' && !!window.api;
 
   const meta = store.downloadMetadata;
 
   const handleFetchMetadata = async () => {
-    if (!window.api || !url.trim()) return;
+    if (!hasDesktopApi) {
+      setError('Desktop bridge unavailable. Launch via `npm run dev` or `npm start`, not the Vite web server alone.');
+      return;
+    }
+    if (!url.trim()) return;
     setFetching(true);
     setError(null);
     try {
@@ -35,7 +40,7 @@ export default function DownloadPage({ store }: Props) {
   };
 
   const handleStartDownload = async () => {
-    if (!window.api || !meta) return;
+    if (!hasDesktopApi || !meta) return;
 
     const jobId = crypto.randomUUID();
     const job: Job = {
@@ -74,6 +79,12 @@ export default function DownloadPage({ store }: Props) {
         Paste a URL from YouTube, Vimeo, Twitter/X, TikTok, and 1,000+ other sites.
       </p>
 
+      {!hasDesktopApi && (
+        <div className="card border border-yellow-500/30 bg-yellow-500/10 text-yellow-200">
+          Native download actions are unavailable in browser-only mode. Run the app through Electron with `npm run dev` or `npm start`.
+        </div>
+      )}
+
       {/* URL Input */}
       <div className="card space-y-3">
         <div className="flex gap-2">
@@ -86,7 +97,7 @@ export default function DownloadPage({ store }: Props) {
           />
           <button
             onClick={handleFetchMetadata}
-            disabled={!url.trim() || fetching}
+            disabled={!url.trim() || fetching || !hasDesktopApi}
             className="btn-primary whitespace-nowrap disabled:opacity-40"
           >
             {fetching ? 'Fetching...' : 'Fetch'}

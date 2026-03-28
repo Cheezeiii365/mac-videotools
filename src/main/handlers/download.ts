@@ -1,9 +1,13 @@
 import { IpcMain, BrowserWindow } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
+import { promises as fs } from 'fs';
+import * as path from 'path';
 import { IpcChannel, DownloadOptions, DownloadMetadata } from '../../shared/types';
 import { getYtDlpPath } from '../utils/binaries';
+import { registerJobCancellation, unregisterJobCancellation } from './jobs';
 
 const activeProcesses = new Map<string, ChildProcess>();
+const cancelledJobs = new Set<string>();
 
 export function registerDownloadHandlers(
   ipcMain: IpcMain,
@@ -73,6 +77,7 @@ export function registerDownloadHandlers(
     async (_event, jobId: string, options: DownloadOptions) => {
       const ytdlpPath = getYtDlpPath();
       const win = getWindow();
+      const existingTempFiles = await snapshotPartialFiles(options.outputDir);
 
       const args: string[] = [
         '--newline', // Progress on separate lines
@@ -92,33 +97,53 @@ export function registerDownloadHandlers(
       return new Promise<void>((resolve, reject) => {
         const proc = spawn(ytdlpPath, args);
         activeProcesses.set(jobId, proc);
+        const trackedOutputPaths = new Set<string>();
+
+        registerJobCancellation(jobId, () => {
+          cancelledJobs.add(jobId);
+          proc.kill('SIGTERM');
+        });
 
         proc.stdout.on('data', (data: Buffer) => {
-          const line = data.toString().trim();
-          win?.webContents.send(IpcChannel.JOB_LOG, { jobId, line });
+          for (const line of splitLines(data.toString())) {
+            win?.webContents.send(IpcChannel.JOB_LOG, { jobId, line });
 
-          // Parse download progress: [download]  45.2% of ~50.00MiB at 10.00MiB/s ETA 00:03
-          const progressMatch = line.match(/\[download\]\s+([\d.]+)%/);
-          if (progressMatch) {
-            const progress = parseFloat(progressMatch[1]);
-            const speedMatch = line.match(/at\s+([\d.]+\w+\/s)/);
-            const etaMatch = line.match(/ETA\s+([\d:]+)/);
+            const destinationPath = extractDestinationPath(line);
+            if (destinationPath) {
+              trackedOutputPaths.add(path.resolve(destinationPath));
+            }
 
-            win?.webContents.send(IpcChannel.JOB_PROGRESS, {
-              jobId,
-              progress: Math.round(progress * 10) / 10,
-              speed: speedMatch ? speedMatch[1] : undefined,
-              eta: etaMatch ? etaMatch[1] : undefined,
-            });
+            // Parse download progress: [download]  45.2% of ~50.00MiB at 10.00MiB/s ETA 00:03
+            const progressMatch = line.match(/\[download\]\s+([\d.]+)%/);
+            if (progressMatch) {
+              const progress = parseFloat(progressMatch[1]);
+              const speedMatch = line.match(/at\s+([\d.]+\w+\/s)/);
+              const etaMatch = line.match(/ETA\s+([\d:]+)/);
+
+              win?.webContents.send(IpcChannel.JOB_PROGRESS, {
+                jobId,
+                progress: Math.round(progress * 10) / 10,
+                speed: speedMatch ? speedMatch[1] : undefined,
+                eta: etaMatch ? etaMatch[1] : undefined,
+              });
+            }
           }
         });
 
         proc.stderr.on('data', (data: Buffer) => {
-          win?.webContents.send(IpcChannel.JOB_LOG, { jobId, line: data.toString() });
+          for (const line of splitLines(data.toString())) {
+            win?.webContents.send(IpcChannel.JOB_LOG, { jobId, line });
+          }
         });
 
-        proc.on('close', (code) => {
+        proc.on('close', async (code) => {
           activeProcesses.delete(jobId);
+          unregisterJobCancellation(jobId);
+          if (cancelledJobs.delete(jobId)) {
+            await cleanupPartialFiles(jobId, options.outputDir, existingTempFiles, trackedOutputPaths, win);
+            resolve();
+            return;
+          }
           if (code === 0) {
             win?.webContents.send(IpcChannel.JOB_COMPLETED, { jobId });
             resolve();
@@ -131,6 +156,7 @@ export function registerDownloadHandlers(
 
         proc.on('error', (err) => {
           activeProcesses.delete(jobId);
+          unregisterJobCancellation(jobId);
           const error = `Failed to start yt-dlp: ${err.message}`;
           win?.webContents.send(IpcChannel.JOB_FAILED, { jobId, error });
           reject(new Error(error));
@@ -138,4 +164,102 @@ export function registerDownloadHandlers(
       });
     }
   );
+}
+
+function splitLines(chunk: string): string[] {
+  return chunk
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean);
+}
+
+function extractDestinationPath(line: string): string | null {
+  const matchers = [
+    /\[download\]\s+Destination:\s+(.+)$/,
+    /\[ExtractAudio\]\s+Destination:\s+(.+)$/,
+    /\[Merger\]\s+Merging formats into\s+"(.+)"$/,
+  ];
+
+  for (const matcher of matchers) {
+    const match = line.match(matcher);
+    if (!match) {
+      continue;
+    }
+
+    return match[1].replace(/^"(.*)"$/, '$1');
+  }
+
+  return null;
+}
+
+function isPartialDownloadFile(fileName: string): boolean {
+  return /\.part($|-)/i.test(fileName) || /\.ytdl$/i.test(fileName) || /\.temp$/i.test(fileName);
+}
+
+async function snapshotPartialFiles(outputDir: string): Promise<Set<string>> {
+  try {
+    const entries = await fs.readdir(outputDir, { withFileTypes: true });
+    return new Set(
+      entries
+        .filter((entry) => entry.isFile() && isPartialDownloadFile(entry.name))
+        .map((entry) => entry.name)
+    );
+  } catch {
+    return new Set<string>();
+  }
+}
+
+function matchesTrackedOutput(fileName: string, trackedOutputPaths: Set<string>, outputDir: string): boolean {
+  if (trackedOutputPaths.size === 0) {
+    return true;
+  }
+
+  for (const trackedPath of trackedOutputPaths) {
+    if (path.dirname(trackedPath) !== path.resolve(outputDir)) {
+      continue;
+    }
+
+    const trackedName = path.basename(trackedPath);
+    if (fileName === `${trackedName}.ytdl` || fileName.startsWith(`${trackedName}.part`)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+async function cleanupPartialFiles(
+  jobId: string,
+  outputDir: string,
+  existingTempFiles: Set<string>,
+  trackedOutputPaths: Set<string>,
+  win: BrowserWindow | null
+) {
+  try {
+    const resolvedOutputDir = path.resolve(outputDir);
+    const entries = await fs.readdir(resolvedOutputDir, { withFileTypes: true });
+    const filesToDelete = entries
+      .filter((entry) => entry.isFile())
+      .map((entry) => entry.name)
+      .filter((fileName) => isPartialDownloadFile(fileName))
+      .filter((fileName) => !existingTempFiles.has(fileName))
+      .filter((fileName) => matchesTrackedOutput(fileName, trackedOutputPaths, resolvedOutputDir));
+
+    await Promise.all(
+      filesToDelete.map((fileName) => fs.rm(path.join(resolvedOutputDir, fileName), { force: true }))
+    );
+
+    if (filesToDelete.length > 0) {
+      win?.webContents.send(IpcChannel.JOB_LOG, {
+        jobId,
+        line: `Removed partial files: ${filesToDelete.join(', ')}`,
+      });
+    }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : String(err);
+    win?.webContents.send(IpcChannel.JOB_LOG, {
+      jobId,
+      line: `Failed to clean partial files: ${message}`,
+    });
+  }
 }

@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain, dialog } from 'electron';
 import * as path from 'path';
 import { registerConversionHandlers } from './handlers/conversion';
 import { registerDownloadHandlers } from './handlers/download';
+import { registerJobHandlers } from './handlers/jobs';
 import { registerPresetHandlers } from './handlers/presets';
 import { registerSystemHandlers } from './handlers/system';
 
@@ -17,15 +18,15 @@ function createWindow() {
     titleBarStyle: 'hiddenInset',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      sandbox: false,
       contextIsolation: true,
       nodeIntegration: false,
     },
   });
 
-  // In dev, load from Vite dev server; in prod, load built files
-  const isDev = !app.isPackaged;
-  if (isDev) {
-    mainWindow.loadURL('http://localhost:5173');
+  const devServerUrl = process.env.VITE_DEV_SERVER_URL;
+  if (devServerUrl) {
+    mainWindow.loadURL(devServerUrl);
     mainWindow.webContents.openDevTools({ mode: 'detach' });
   } else {
     mainWindow.loadFile(path.join(__dirname, '../../renderer/index.html'));
@@ -40,6 +41,7 @@ app.whenReady().then(() => {
   createWindow();
 
   // Register IPC handlers
+  registerJobHandlers(ipcMain);
   registerConversionHandlers(ipcMain, () => mainWindow);
   registerDownloadHandlers(ipcMain, () => mainWindow);
   registerPresetHandlers(ipcMain);

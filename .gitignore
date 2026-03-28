@@ -4,6 +4,8 @@ dist/
 *.log
 .DS_Store
 thumbs.db
+pnpm-lock.yaml
+.aide/
 
 # Security patterns added by aIDE
 .env.*

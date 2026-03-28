@@ -2,8 +2,10 @@ import { IpcMain, BrowserWindow } from 'electron';
 import { spawn, ChildProcess } from 'child_process';
 import { IpcChannel, ConversionOptions, MediaInfo } from '../../shared/types';
 import { getFFmpegPath, getFFprobePath } from '../utils/binaries';
+import { registerJobCancellation, unregisterJobCancellation } from './jobs';
 
 const activeProcesses = new Map<string, ChildProcess>();
+const cancelledJobs = new Set<string>();
 
 export function registerConversionHandlers(
   ipcMain: IpcMain,
@@ -57,6 +59,10 @@ export function registerConversionHandlers(
       return new Promise<void>((resolve, reject) => {
         const proc = spawn(ffmpegPath, args);
         activeProcesses.set(jobId, proc);
+        registerJobCancellation(jobId, () => {
+          cancelledJobs.add(jobId);
+          proc.kill('SIGTERM');
+        });
 
         let duration = 0;
 
@@ -98,6 +104,11 @@ export function registerConversionHandlers(
 
         proc.on('close', (code) => {
           activeProcesses.delete(jobId);
+          unregisterJobCancellation(jobId);
+          if (cancelledJobs.delete(jobId)) {
+            resolve();
+            return;
+          }
           if (code === 0) {
             win?.webContents.send(IpcChannel.JOB_COMPLETED, { jobId });
             resolve();
@@ -110,6 +121,7 @@ export function registerConversionHandlers(
 
         proc.on('error', (err) => {
           activeProcesses.delete(jobId);
+          unregisterJobCancellation(jobId);
           const error = `Failed to start ffmpeg: ${err.message}`;
           win?.webContents.send(IpcChannel.JOB_FAILED, { jobId, error });
           reject(new Error(error));
@@ -117,17 +129,6 @@ export function registerConversionHandlers(
       });
     }
   );
-
-  // Cancel job
-  ipcMain.handle(IpcChannel.CANCEL_JOB, async (_event, jobId: string) => {
-    const proc = activeProcesses.get(jobId);
-    if (proc) {
-      proc.kill('SIGTERM');
-      activeProcesses.delete(jobId);
-      return true;
-    }
-    return false;
-  });
 }
 
 function buildFFmpegArgs(

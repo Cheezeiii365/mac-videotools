@@ -1,5 +1,23 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import { IpcChannel } from '../shared/types';
+
+const IpcChannel = {
+  PROBE_FILE: 'probe-file',
+  START_CONVERSION: 'start-conversion',
+  CANCEL_JOB: 'cancel-job',
+  FETCH_METADATA: 'fetch-metadata',
+  START_DOWNLOAD: 'start-download',
+  JOB_PROGRESS: 'job-progress',
+  JOB_COMPLETED: 'job-completed',
+  JOB_FAILED: 'job-failed',
+  JOB_LOG: 'job-log',
+  GET_PRESETS: 'get-presets',
+  SAVE_PRESET: 'save-preset',
+  DELETE_PRESET: 'delete-preset',
+  DETECT_HARDWARE: 'detect-hardware',
+  SELECT_DIRECTORY: 'select-directory',
+  SELECT_FILES: 'select-files',
+  GET_APP_INFO: 'get-app-info',
+} as const;
 
 const api = {
   // Conversion

@@ -16,8 +16,10 @@ export default function QueuePage({ store }: Props) {
 
   const handleCancel = async (jobId: string) => {
     if (!window.api) return;
-    await window.api.cancelJob(jobId);
-    store.updateJob(jobId, { status: 'cancelled' });
+    const cancelled = await window.api.cancelJob(jobId);
+    if (cancelled) {
+      store.updateJob(jobId, { status: 'cancelled' });
+    }
   };
 
   const handleClearCompleted = () => {

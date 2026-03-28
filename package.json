@@ -4,14 +4,15 @@
   "description": "Media Management & Transcoding Desktop App - wrapping ffmpeg and yt-dlp in a modern GUI",
   "main": "dist/main/main/index.js",
   "scripts": {
-    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
+    "dev": "npm run electron:dev",
+    "dev:web": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
     "dev:main": "tsc -p tsconfig.main.json --watch",
     "dev:renderer": "vite",
     "build": "npm run build:main && npm run build:renderer",
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
     "start": "electron dist/main/main/index.js",
-    "electron:dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && tsc -p tsconfig.main.json && electron dist/main/main/index.js\""
+    "electron:dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\" \"wait-on http://127.0.0.1:5173 && VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron dist/main/main/index.js\""
   },
   "repository": {
     "type": "git",

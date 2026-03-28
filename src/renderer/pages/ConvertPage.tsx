@@ -10,6 +10,7 @@ export default function ConvertPage({ store }: Props) {
   const [isDragOver, setIsDragOver] = useState(false);
   const [probing, setProbing] = useState(false);
   const [customOptions, setCustomOptions] = useState<Partial<ConversionOptions>>({});
+  const hasDesktopApi = typeof window !== 'undefined' && !!window.api;
 
   const selectedPreset = store.presets.find((p) => p.id === store.selectedPresetId);
 
@@ -46,7 +47,7 @@ export default function ConvertPage({ store }: Props) {
   );
 
   const handleSelectFiles = async () => {
-    if (!window.api) return;
+    if (!hasDesktopApi) return;
     const files = await window.api.selectFiles();
     if (!files) return;
     store.setSelectedFiles([...store.selectedFiles, ...files]);
@@ -61,7 +62,7 @@ export default function ConvertPage({ store }: Props) {
   };
 
   const handleSelectOutputDir = async () => {
-    if (!window.api) return;
+    if (!hasDesktopApi) return;
     const dir = await window.api.selectDirectory();
     if (dir) store.setOutputDir(dir);
   };
@@ -71,7 +72,7 @@ export default function ConvertPage({ store }: Props) {
   };
 
   const handleStartConversion = async () => {
-    if (!window.api || store.selectedFiles.length === 0 || !selectedPreset) return;
+    if (!hasDesktopApi || store.selectedFiles.length === 0 || !selectedPreset) return;
 
     const options: ConversionOptions = {
       ...selectedPreset.options,
@@ -110,6 +111,12 @@ export default function ConvertPage({ store }: Props) {
     <div className="p-6 max-w-4xl mx-auto space-y-6">
       <h2 className="text-xl font-semibold">Convert & Transcode</h2>
 
+      {!hasDesktopApi && (
+        <div className="card border border-yellow-500/30 bg-yellow-500/10 text-yellow-200">
+          Native file selection, probing, and transcoding are unavailable in browser-only mode. Run the app through Electron with `npm run dev` or `npm start`.
+        </div>
+      )}
+
       {/* Drop zone */}
       <div
         onDragOver={handleDragOver}
@@ -118,7 +125,7 @@ export default function ConvertPage({ store }: Props) {
         className={`card border-2 border-dashed transition-colors cursor-pointer flex flex-col items-center justify-center min-h-[160px] gap-3 ${
           isDragOver ? 'border-accent bg-accent/5' : 'border-surface-4 hover:border-gray-500'
         }`}
-        onClick={handleSelectFiles}
+        onClick={hasDesktopApi ? handleSelectFiles : undefined}
       >
         <div className="text-3xl text-gray-500">+</div>
         <p className="text-sm text-gray-400">
@@ -277,7 +284,7 @@ export default function ConvertPage({ store }: Props) {
         </div>
         <button
           onClick={handleStartConversion}
-          disabled={store.selectedFiles.length === 0 || !selectedPreset}
+          disabled={!hasDesktopApi || store.selectedFiles.length === 0 || !selectedPreset}
           className="btn-primary disabled:opacity-40 disabled:cursor-not-allowed px-8"
         >
           Convert {store.selectedFiles.length > 1 ? `(${store.selectedFiles.length})` : ''}
