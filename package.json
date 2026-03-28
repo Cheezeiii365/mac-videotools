@@ -1,0 +1,41 @@
+{
+  "name": "mac-videotools",
+  "version": "0.1.0",
+  "description": "Media Management & Transcoding Desktop App - wrapping ffmpeg and yt-dlp in a modern GUI",
+  "main": "dist/main/main/index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\"",
+    "dev:main": "tsc -p tsconfig.main.json --watch",
+    "dev:renderer": "vite",
+    "build": "npm run build:main && npm run build:renderer",
+    "build:main": "tsc -p tsconfig.main.json",
+    "build:renderer": "vite build",
+    "start": "electron dist/main/main/index.js",
+    "electron:dev": "concurrently \"npm run dev:renderer\" \"wait-on http://localhost:5173 && tsc -p tsconfig.main.json && electron dist/main/main/index.js\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "http://local_proxy@127.0.0.1:44311/git/Cheezeiii365/mac-videotools"
+  },
+  "keywords": ["ffmpeg", "yt-dlp", "transcoding", "media", "electron"],
+  "author": "Studio 60 Records",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/react": "^18.3.0",
+    "@types/react-dom": "^18.3.0",
+    "@vitejs/plugin-react": "^4.3.0",
+    "autoprefixer": "^10.4.19",
+    "concurrently": "^8.2.2",
+    "electron": "^30.0.0",
+    "postcss": "^8.4.38",
+    "tailwindcss": "^3.4.4",
+    "typescript": "^5.4.5",
+    "vite": "^5.3.0",
+    "wait-on": "^7.2.0"
+  },
+  "dependencies": {
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "uuid": "^9.0.1"
+  }
+}
