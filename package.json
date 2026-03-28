@@ -12,13 +12,47 @@
     "build:main": "tsc -p tsconfig.main.json",
     "build:renderer": "vite build",
     "start": "electron dist/main/main/index.js",
+    "dist": "npm run build && electron-builder --mac",
     "electron:dev": "concurrently \"npm run dev:main\" \"npm run dev:renderer\" \"wait-on http://127.0.0.1:5173 && VITE_DEV_SERVER_URL=http://127.0.0.1:5173 electron dist/main/main/index.js\""
+  },
+  "build": {
+    "appId": "com.studio60records.videotools",
+    "productName": "VideoTools",
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist/**/*"
+    ],
+    "mac": {
+      "category": "public.app-category.video",
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["universal"]
+        }
+      ],
+      "identity": null
+    },
+    "dmg": {
+      "title": "VideoTools",
+      "contents": [
+        { "x": 130, "y": 220 },
+        { "x": 410, "y": 220, "type": "link", "path": "/Applications" }
+      ]
+    }
   },
   "repository": {
     "type": "git",
-    "url": "http://local_proxy@127.0.0.1:44311/git/Cheezeiii365/mac-videotools"
+    "url": "https://github.com/Cheezeiii365/mac-videotools"
   },
-  "keywords": ["ffmpeg", "yt-dlp", "transcoding", "media", "electron"],
+  "keywords": [
+    "ffmpeg",
+    "yt-dlp",
+    "transcoding",
+    "media",
+    "electron"
+  ],
   "author": "Studio 60 Records",
   "license": "MIT",
   "devDependencies": {
@@ -28,6 +62,7 @@
     "autoprefixer": "^10.4.19",
     "concurrently": "^8.2.2",
     "electron": "^30.0.0",
+    "electron-builder": "^26.8.1",
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "typescript": "^5.4.5",
