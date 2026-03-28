@@ -101,12 +101,81 @@ export interface DownloadMetadata {
   url: string;
 }
 
+export type AudioFormat = 'best' | 'mp3' | 'aac' | 'flac' | 'wav' | 'opus' | 'vorbis' | 'm4a';
+export type RecodeFormat = 'mp4' | 'mkv' | 'webm' | 'avi' | 'flv';
+export type SubtitleFormat = 'srt' | 'ass' | 'vtt' | 'lrc';
+
 export interface DownloadOptions {
   url: string;
-  formatId?: string;
-  audioOnly?: boolean;
   outputDir: string;
-  filenameTemplate?: string;
+
+  // Format
+  formatId?: string;
+  formatSort?: string;             // --format-sort (e.g. "res:720,ext:mp4:m4a")
+  mergeOutputFormat?: string;      // --merge-output-format
+
+  // Audio extraction
+  audioOnly?: boolean;
+  audioFormat?: AudioFormat;       // --audio-format
+  audioQuality?: string;           // --audio-quality (0-10 or bitrate like 320K)
+
+  // Video recode / remux
+  recodeVideo?: RecodeFormat;      // --recode-video
+  remuxVideo?: string;             // --remux-video
+
+  // Subtitles
+  writeSubs?: boolean;             // --write-subs
+  writeAutoSubs?: boolean;         // --write-auto-subs
+  embedSubs?: boolean;             // --embed-subs
+  subLangs?: string;               // --sub-langs (comma-separated)
+  subFormat?: SubtitleFormat;      // --sub-format
+
+  // Thumbnails & Metadata
+  writeThumbnail?: boolean;        // --write-thumbnail
+  embedThumbnail?: boolean;        // --embed-thumbnail
+  embedMetadata?: boolean;         // --embed-metadata
+  embedChapters?: boolean;         // --embed-chapters
+
+  // Filename & output
+  filenameTemplate?: string;       // -o template
+  restrictFilenames?: boolean;     // --restrict-filenames
+  windowsFilenames?: boolean;      // --windows-filenames
+
+  // Network
+  limitRate?: string;              // --limit-rate (e.g. "5M")
+  proxy?: string;                  // --proxy
+  socketTimeout?: number;          // --socket-timeout
+  retries?: number;                // --retries
+  concurrentFragments?: number;    // --concurrent-fragments
+
+  // Playlist
+  noPlaylist?: boolean;            // --no-playlist (single video from playlist URL)
+  playlistItems?: string;          // --playlist-items (e.g. "1-3,5")
+
+  // SponsorBlock
+  sponsorblockRemove?: string;     // --sponsorblock-remove (e.g. "sponsor,intro")
+
+  // Sections
+  downloadSections?: string;       // --download-sections (e.g. "*10:00-15:00")
+
+  // Post-processing
+  splitChapters?: boolean;         // --split-chapters
+  keepVideo?: boolean;             // --keep-video (keep original after post-processing)
+
+  // Authentication & access
+  videoPassword?: string;          // --video-password
+  cookiesFromBrowser?: string;     // --cookies-from-browser (e.g. "chrome")
+
+  // Extra raw args
+  extraArgs?: string;              // Additional raw yt-dlp arguments
+}
+
+export interface DownloadPreset {
+  id: string;
+  name: string;
+  icon: string;
+  description: string;
+  options: Partial<DownloadOptions>;
 }
 
 // ── Job Queue ──

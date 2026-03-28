@@ -85,11 +85,80 @@ export function registerDownloadHandlers(
         '-o', `${options.outputDir}/${options.filenameTemplate || '%(title)s.%(ext)s'}`,
       ];
 
+      // Format selection
       if (options.formatId) {
         args.push('-f', options.formatId);
       }
+      if (options.formatSort) {
+        args.push('--format-sort', options.formatSort);
+      }
+      if (options.mergeOutputFormat) {
+        args.push('--merge-output-format', options.mergeOutputFormat);
+      }
+
+      // Audio extraction
       if (options.audioOnly) {
-        args.push('-x', '--audio-format', 'mp3');
+        args.push('-x');
+        args.push('--audio-format', options.audioFormat || 'mp3');
+        if (options.audioQuality) {
+          args.push('--audio-quality', options.audioQuality);
+        }
+      }
+
+      // Video recode / remux
+      if (options.recodeVideo) {
+        args.push('--recode-video', options.recodeVideo);
+      }
+      if (options.remuxVideo) {
+        args.push('--remux-video', options.remuxVideo);
+      }
+
+      // Subtitles
+      if (options.writeSubs) args.push('--write-subs');
+      if (options.writeAutoSubs) args.push('--write-auto-subs');
+      if (options.embedSubs) args.push('--embed-subs');
+      if (options.subLangs) args.push('--sub-langs', options.subLangs);
+      if (options.subFormat) args.push('--sub-format', options.subFormat);
+
+      // Thumbnails & Metadata
+      if (options.writeThumbnail) args.push('--write-thumbnail');
+      if (options.embedThumbnail) args.push('--embed-thumbnail');
+      if (options.embedMetadata) args.push('--embed-metadata');
+      if (options.embedChapters) args.push('--embed-chapters');
+
+      // Filename options
+      if (options.restrictFilenames) args.push('--restrict-filenames');
+      if (options.windowsFilenames) args.push('--windows-filenames');
+
+      // Network
+      if (options.limitRate) args.push('--limit-rate', options.limitRate);
+      if (options.proxy) args.push('--proxy', options.proxy);
+      if (options.socketTimeout) args.push('--socket-timeout', String(options.socketTimeout));
+      if (options.retries !== undefined) args.push('--retries', String(options.retries));
+      if (options.concurrentFragments) args.push('--concurrent-fragments', String(options.concurrentFragments));
+
+      // Playlist
+      if (options.noPlaylist) args.push('--no-playlist');
+      if (options.playlistItems) args.push('--playlist-items', options.playlistItems);
+
+      // SponsorBlock
+      if (options.sponsorblockRemove) args.push('--sponsorblock-remove', options.sponsorblockRemove);
+
+      // Sections
+      if (options.downloadSections) args.push('--download-sections', options.downloadSections);
+
+      // Post-processing
+      if (options.splitChapters) args.push('--split-chapters');
+      if (options.keepVideo) args.push('--keep-video');
+
+      // Authentication & access
+      if (options.videoPassword) args.push('--video-password', options.videoPassword);
+      if (options.cookiesFromBrowser) args.push('--cookies-from-browser', options.cookiesFromBrowser);
+
+      // Extra raw args
+      if (options.extraArgs) {
+        const extra = options.extraArgs.match(/(?:[^\s"]+|"[^"]*")+/g) || [];
+        args.push(...extra.map(a => a.replace(/^"|"$/g, '')));
       }
 
       args.push(options.url);
